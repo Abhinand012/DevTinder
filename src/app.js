@@ -1,23 +1,27 @@
 const express = require("express");
+const connectDB = require("./config/database");
+const User = require("./models/user");
 
 const app = express();
 
-function authenticate(req, res, next) {
-  const key = req.headers["x-api-key"];
-  console.log(key);
-  if (key === "mysecret123") {
-    next();
-  } else if (!key) {
-    res.status(401).send("API key required");
-  } else {
-    res.status(401).send("Invalid API key");
-  }
-}
-
-app.get("/admin", authenticate, (req, res) => {
-  res.send("Welcome Admin");
+app.post("/signup", async (req, res) => {
+  const user = new User({
+    firstName: "Nikhil",
+    lastName: "P",
+    email: "nikhilnikhi@gmail.com",
+    passWord: "Nikhil@123",
+  });
+  await user.save();
+  res.send("User created successfully");
 });
 
-app.listen(3000, () => {
-  console.log("listening on port 3000");
-});
+connectDB()
+  .then(() => {
+    console.log("Database connected successfully");
+    app.listen(3000, () => {
+      console.log("listening on port 3000");
+    });
+  })
+  .catch((err) => {
+    console.error("Database connection failed", err);
+  });
