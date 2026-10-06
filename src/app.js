@@ -1,20 +1,54 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
 app.use(express.json());
 
+//signup api to push new data into the database
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
   try {
+    const { firstName, lastName, email, passWord } = req.body;
+    //validation of data
+    validateSignUpData(req);
+    //password encryption
+    const passwordHash = await bcrypt.hash(passWord, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      passWord: passwordHash,
+    });
+
     await user.save();
     res.send("User created successfully");
   } catch (err) {
     res.status(400).send(err.message);
   }
 });
+
+//login api to login the user
+app.post("/login", async (req, res) => {
+  try {
+    const { email, passWord } = req.body;
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    const isPasswordCorrect = await bcrypt.compare(passWord, user.passWord);
+    if (!isPasswordCorrect) {
+      throw new Error("Invalid credentials");
+    }
+    res.send("Login successful");
+  } catch (err) {
+    res.status(400).send("Error:" + err.message);
+  }
+});
+
 //user api to get a user by email
 app.get("/user", async (req, res) => {
   const userEmail = req.body.email;

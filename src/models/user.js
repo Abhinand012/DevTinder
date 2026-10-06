@@ -30,7 +30,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       validate(value) {
-        if (validator.isStrongPassword(value)) {
+        if (!validator.isStrongPassword(value)) {
           throw new Error("Enter a strong password:" + value);
         }
       },
@@ -38,11 +38,9 @@ const userSchema = new Schema(
     age: {
       type: Number,
       min: 18,
-      default: 18,
     },
     gender: {
       type: String,
-      required: true,
       validate: {
         validator: (value) => {
           return ["male", "female", "other"].includes(value);
