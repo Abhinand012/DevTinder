@@ -3,10 +3,15 @@ const connectDB = require("./config/database");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { adminAuth } = require("./middlewares/auth");
 
 const app = express();
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 //signup api to push new data into the database
 app.post("/signup", async (req, res) => {
@@ -39,14 +44,33 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    const isPasswordCorrect = await bcrypt.compare(passWord, user.passWord);
+    const isPasswordCorrect = await user.verifyPassword(passWord);
     if (!isPasswordCorrect) {
       throw new Error("Invalid credentials");
     }
+    //jwt token creation
+    const token = await user.getJWT();
+    res.cookie("token", token);
     res.send("Login successful");
   } catch (err) {
     res.status(400).send("Error:" + err.message);
   }
+});
+
+//profile api to get user details
+app.get("/profile", adminAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("Error:" + err.message);
+  }
+});
+
+//sendConnection api to send connection with another user
+app.post("/sendConnection", adminAuth, (req, res) => {
+  const user = req.user;
+  res.send(user.firstName + " " + user.lastName + " sent connection");
 });
 
 //user api to get a user by email
