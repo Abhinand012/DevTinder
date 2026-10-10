@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
 const { Schema } = mongoose;
+const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -27,7 +27,7 @@ const userSchema = new Schema(
         message: "Invalid email address",
       },
     },
-    passWord: {
+    password: {
       type: String,
       required: true,
       validate(value) {
@@ -72,6 +72,8 @@ const userSchema = new Schema(
   },
 );
 
+userSchema.index({ firstName: 1, lastName: 1 });
+
 userSchema.methods.getJWT = async function () {
   const user = this;
   const token = await jwt.sign({ _id: user._id }, "DevTinder@Token123", {
@@ -82,7 +84,7 @@ userSchema.methods.getJWT = async function () {
 
 userSchema.methods.verifyPassword = async function (passwordInput) {
   const user = this;
-  const passwordHash = user.passWord;
+  const passwordHash = user.password;
   const isPasswordCorrect = await bcrypt.compare(passwordInput, passwordHash);
   return isPasswordCorrect;
 };
