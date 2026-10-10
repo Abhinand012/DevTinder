@@ -1,15 +1,49 @@
 const validator = require("validator");
 
 const validateSignUpData = (req) => {
-  const { firstName, lastName, email, passWord } = req.body;
-  const nameregex = /^[A-Z][a-z A-Z]*$/;
-  if (!nameregex.test(firstName) || !nameregex.test(lastName)) {
-    throw new Error("Invalid name");
-  } else if (!/^[a-z](\w+)@gmail\.com$/.test(email)) {
+  const { firstName, lastName, email, password } = req.body;
+  nameValidation(firstName);
+  nameValidation(lastName);
+  if (!/^[a-z](\w+)@gmail\.com$/.test(email)) {
     throw new Error("Invalid email");
-  } else if (!validator.isStrongPassword(passWord)) {
-    throw new Error("Enter a strong password");
+  }
+  passwordValidation(password);
+};
+
+const validateEditProfileData = (req) => {
+  const allowedEditFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "age",
+    "skills",
+    "about",
+  ];
+  const isEditAllowed = Object.keys(req.body).every((field) =>
+    allowedEditFields.includes(field),
+  );
+
+  if (!isEditAllowed) {
+    throw new Error("Not an allowed edit field");
   }
 };
 
-module.exports = { validateSignUpData };
+const nameValidation = (name) => {
+  const nameregex = /^[A-Z][a-zA-Z]*$/;
+  if (!nameregex.test(name)) {
+    throw new Error("Invalid name!");
+  }
+};
+
+const passwordValidation = (password) => {
+  if (!validator.isStrongPassword(password)) {
+    throw new Error("password should be strong!");
+  }
+};
+
+module.exports = {
+  validateSignUpData,
+  validateEditProfileData,
+  nameValidation,
+  passwordValidation,
+};
