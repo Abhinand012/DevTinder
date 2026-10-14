@@ -4,8 +4,16 @@ const { Schema } = mongoose;
 
 const connectionRequestSchema = new Schema(
   {
-    fromUserId: { type: Schema.Types.ObjectId },
-    toUserId: { type: Schema.Types.ObjectId },
+    fromUserId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
+    toUserId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
     status: {
       type: String,
       required: true,

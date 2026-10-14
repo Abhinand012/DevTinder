@@ -1,11 +1,10 @@
 const express = require("express");
 const { adminAuth } = require("../middlewares/auth");
-const connectionRequestModel = require("../models/connectionRequest");
 const ConnectionRequestModel = require("../models/connectionRequest");
 const User = require("../models/user");
 const requestRouter = express.Router();
 
-//sendConnection api to send connection with another user
+//request api to send connection with another user
 requestRouter.post("/request/:status/:userId", adminAuth, async (req, res) => {
   try {
     const fromUserId = req.user._id;
@@ -17,10 +16,6 @@ requestRouter.post("/request/:status/:userId", adminAuth, async (req, res) => {
     if (!requestedUser) {
       throw new Error("No such user exists");
     }
-    // if (fromUserId == toUserId) {
-    //   throw new Error("Cannot send connection request to yourself");
-    // }
-
     if (!allowedStatus.includes(status)) {
       throw new Error("Invalid status:" + status);
     }
@@ -36,7 +31,7 @@ requestRouter.post("/request/:status/:userId", adminAuth, async (req, res) => {
       throw new Error("connection request already exists");
     }
 
-    const request = new connectionRequestModel({
+    const request = new ConnectionRequestModel({
       fromUserId,
       toUserId,
       status,
@@ -51,5 +46,37 @@ requestRouter.post("/request/:status/:userId", adminAuth, async (req, res) => {
     res.status(404).send("ERROR: " + err.message);
   }
 });
+
+requestRouter.post(
+  "/review/:status/:requestId",
+  adminAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+      const allowedStatus = ["accepted", "rejected"];
+      if (!allowedStatus.includes(status)) {
+        throw new Error("Invalid Status");
+      }
+      const connectionRequest = await ConnectionRequestModel.findOne({
+        fromUserId: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+
+      if (!connectionRequest) {
+        throw new Error("connection request not found!");
+      }
+
+      connectionRequest.status = status;
+
+      const data = await connectionRequest.save();
+
+      res.json({ message: "connection request " + status, data });
+    } catch (err) {
+      res.status(400).send("ERROR: " + err.message);
+    }
+  },
+);
 
 module.exports = requestRouter;

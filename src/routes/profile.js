@@ -24,7 +24,9 @@ profileRouter.patch("/profile/edit", adminAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     validateEditProfileData(req);
-    nameValidation(req.body.firstName);
+    if (req.body.firstName) {
+      nameValidation(req.body.firstName);
+    }
     Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
     loggedInUser.save();
     res.send("user data updated successfully");
