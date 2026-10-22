@@ -28,8 +28,8 @@ profileRouter.patch("/profile/edit", adminAuth, async (req, res) => {
       nameValidation(req.body.firstName);
     }
     Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
-    loggedInUser.save();
-    res.send("user data updated successfully");
+    await loggedInUser.save();
+    res.send(loggedInUser);
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -55,34 +55,6 @@ profileRouter.patch("/profile/password", adminAuth, async (req, res) => {
     });
   } catch (err) {
     res.status(400).send("Error:" + err.message);
-  }
-});
-
-//update user api to update all the data in a user
-profileRouter.put("/user", adminAuth, async (req, res) => {
-  const userId = req.user._id;
-  const data = req.body;
-  try {
-    const user = await User.findOneAndReplace({ _id: userId }, data);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send("user data updated successfully");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-//delete user api to delete the user
-profileRouter.delete("/user", adminAuth, async (req, res) => {
-  const userId = req.user._id;
-  try {
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send("user data deleted successfully");
-  } catch (err) {
-    res.status(500).send(err.message);
   }
 });
 

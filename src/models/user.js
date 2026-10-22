@@ -42,11 +42,9 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      validate: {
-        validator: (value) => {
-          return ["male", "female", "other"].includes(value);
-        },
-        message: "gender must be male,female or other",
+      enum: {
+        values: ["male", "female", "other"],
+        message: "Gender must be male, female, or other",
       },
     },
     photoUrl: {

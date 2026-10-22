@@ -1,13 +1,13 @@
 const express = require("express");
 const authRouter = express.Router();
 const bcrypt = require("bcrypt");
-const { validateSignUpData } = require("../utils/validation");
+const { validateSignUpData, emailValidation } = require("../utils/validation");
 const User = require("../models/user");
 
 //signup api to push new data into the database
 authRouter.post("/signup", async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, age, gender } = req.body;
     //validation of data
     validateSignUpData(req);
     //password encryption
@@ -18,10 +18,14 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       email,
       password: passwordHash,
+      age,
+      gender,
     });
+    const token = await user.getJWT();
+    res.cookie("token", token);
 
-    await user.save();
-    res.send("User created successfully");
+    const data = await user.save();
+    res.json({ message: "User created successfully", data });
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -42,15 +46,20 @@ authRouter.post("/login", async (req, res) => {
     //jwt token creation
     const token = await user.getJWT();
     res.cookie("token", token);
-    res.send("Login successful");
+    const { firstName, lastName, photoUrl, age, gender, about } = user;
+    res.send({ firstName, lastName, photoUrl, age, gender, about });
   } catch (err) {
     res.status(400).send("Error:" + err.message);
   }
 });
 
 authRouter.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.send("logout successful");
+  try {
+    res.clearCookie("token");
+    res.send("logout successful");
+  } catch (error) {
+    res.status(400).send("ERROR: " + error.message);
+  }
 });
 
 module.exports = authRouter;

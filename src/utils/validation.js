@@ -4,9 +4,7 @@ const validateSignUpData = (req) => {
   const { firstName, lastName, email, password } = req.body;
   nameValidation(firstName);
   nameValidation(lastName);
-  if (!/^[a-z](\w+)@gmail\.com$/.test(email)) {
-    throw new Error("Invalid email");
-  }
+  emailValidation(email);
   passwordValidation(password);
 };
 
@@ -14,8 +12,9 @@ const validateEditProfileData = (req) => {
   const allowedEditFields = [
     "firstName",
     "lastName",
-    "email",
+    "photoUrl",
     "age",
+    "gender",
     "skills",
     "about",
   ];
@@ -35,6 +34,12 @@ const nameValidation = (name) => {
   }
 };
 
+const emailValidation = (email) => {
+  if (!/^[a-z](\w+)@gmail\.com$/.test(email)) {
+    throw new Error("Invalid email");
+  }
+};
+
 const passwordValidation = (password) => {
   if (!validator.isStrongPassword(password)) {
     throw new Error("password should be strong!");
@@ -45,5 +50,6 @@ module.exports = {
   validateSignUpData,
   validateEditProfileData,
   nameValidation,
+  emailValidation,
   passwordValidation,
 };
